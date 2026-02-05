@@ -1,0 +1,8 @@
+# Place your TensorFlow.js model files here
+# 
+# Model should be in one of these formats:
+# - TensorFlow.js Layers Model: model.json + weights files
+# - TensorFlow.js Graph Model: model.json + weights files (SavedModel format)
+#
+# Update src/utils/modelInference.js to load your model correctly
+
