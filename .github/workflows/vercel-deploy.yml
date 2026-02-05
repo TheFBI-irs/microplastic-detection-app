@@ -1,9 +1,13 @@
 name: Deploy to Vercel
 
+# This workflow requires VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID secrets
+# To use: Add secrets in repo Settings > Secrets and variables > Actions
+# Then uncomment the push trigger below or run manually via workflow_dispatch
+
 on:
-  push:
-    branches: [ main, master ]
-  workflow_dispatch:
+  # push:
+  #   branches: [ main, master ]
+  workflow_dispatch: # Run manually only
 
 jobs:
   deploy:

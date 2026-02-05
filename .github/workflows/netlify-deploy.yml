@@ -1,11 +1,13 @@
 name: Deploy to Netlify
 
+# This workflow requires NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID secrets
+# To use: Add secrets in repo Settings > Secrets and variables > Actions
+# Then uncomment the push trigger below or run manually via workflow_dispatch
+
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
+  # push:
+  #   branches: [ main, master ]
+  workflow_dispatch: # Run manually only
 
 jobs:
   build-and-deploy:
