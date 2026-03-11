@@ -66,7 +66,8 @@ function App() {
       setHistory(getHistory())
     } catch (error) {
       console.error('Error during analysis:', error)
-      alert('Error analyzing image. Please try again or check console for details.')
+      const msg = error?.message || String(error)
+      alert(`Error analyzing image: ${msg}\n\nCheck the browser console (F12) for more details.`)
       setCurrentStep('upload')
     }
   }
