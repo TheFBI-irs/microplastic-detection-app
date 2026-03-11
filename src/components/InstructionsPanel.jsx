@@ -57,8 +57,8 @@ function InstructionsPanel({ onClose }) {
           <ul>
             <li>Use good lighting and focus for best detection accuracy</li>
             <li>Adjust confidence threshold to filter false positives</li>
-            <li>All processing happens in your browser - your data stays private</li>
-            <li>Works offline after initial page load</li>
+            <li>Requires an internet connection for AI inference</li>
+            <li>Your images are sent to Roboflow's API for processing — not stored</li>
           </ul>
         </div>
       </div>

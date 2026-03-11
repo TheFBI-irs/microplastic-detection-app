@@ -1,203 +1,83 @@
-import * as tf from '@tensorflow/tfjs'
-
 /**
  * Model Inference Utilities
- * Handles loading and running YOLOv12 TFLite model for microplastic detection
+ * Handles running RF-DETR inference via Roboflow Hosted Inference API
  */
 
-let model = null
-let modelLoading = false
+const ROBOFLOW_API_KEY = import.meta.env.VITE_ROBOFLOW_API_KEY || ''
+const ROBOFLOW_MODEL_ID = import.meta.env.VITE_ROBOFLOW_MODEL_ID || '' // e.g. "microplastics-detection/21"
 
 /**
- * Load the YOLOv12 TFLite model
- * Model should be placed in /public/models/yolov12.tflite
- * For TensorFlow.js, we'll use a converted format (.json + .bin)
+ * Run RF-DETR inference via Roboflow Hosted Inference API.
+ * Docs: https://docs.roboflow.com/deploy/hosted-api/object-detection
+ *
+ * @param {string} imageDataUrl - base64 data URL of the image
+ * @param {number} confidenceThreshold - 0–1, filters detections below this
+ * @returns {{ count, detections, inferenceTime, imageSize }}
  */
-async function loadModel() {
-  if (model) {
-    return model
+export async function detectMicroplastics(imageDataUrl, confidenceThreshold = 0.35) {
+  if (!ROBOFLOW_API_KEY) {
+    throw new Error('No Roboflow API key set. Add VITE_ROBOFLOW_API_KEY to your .env file.')
+  }
+  if (!ROBOFLOW_MODEL_ID) {
+    throw new Error('No Roboflow model ID set. Add VITE_ROBOFLOW_MODEL_ID to your .env file.')
   }
 
-  if (modelLoading) {
-    // Wait for ongoing load to complete
-    while (modelLoading) {
-      await new Promise(resolve => setTimeout(resolve, 100))
-    }
-    return model
+  // Strip the "data:image/...;base64," prefix — Roboflow wants raw base64
+  const base64Image = imageDataUrl.split(',')[1]
+
+  // Get original image dimensions for scaling bounding boxes back
+  const { width: originalWidth, height: originalHeight } = await getImageDimensions(imageDataUrl)
+
+  const startTime = performance.now()
+
+  const url = `https://detect.roboflow.com/${ROBOFLOW_MODEL_ID}?api_key=${ROBOFLOW_API_KEY}&confidence=${Math.round(confidenceThreshold * 100)}`
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: base64Image,
+  })
+
+  if (!response.ok) {
+    const errText = await response.text()
+    throw new Error(`Roboflow API error ${response.status}: ${errText}`)
   }
 
-  modelLoading = true
-  try {
-    // Load model from public/models directory
-    // Note: For production, you'll need to convert your TFLite model to TensorFlow.js format
-    // Using tf.loadLayersModel for .json format or tf.loadGraphModel for SavedModel format
-    console.log('Loading YOLOv12 model...')
-    
-    // For now, we'll create a placeholder that simulates detection
-    // In production, replace this with actual model loading:
-    // model = await tf.loadLayersModel('/models/yolov12.json')
-    // or
-    // model = await tf.loadGraphModel('/models/yolov12/model.json')
-    
-    // Placeholder model for demonstration
-    model = {
-      loaded: true,
-      inputSize: 640
-    }
-    
-    console.log('Model loaded successfully')
-    return model
-  } catch (error) {
-    console.error('Error loading model:', error)
-    modelLoading = false
-    throw new Error('Failed to load detection model. Please ensure the model file is available.')
-  } finally {
-    modelLoading = false
+  const data = await response.json()
+  const inferenceTime = performance.now() - startTime
+
+  // Roboflow returns predictions with CENTER x/y, so convert to top-left for canvas drawing
+  const detections = (data.predictions || []).map(pred => ({
+    bbox: {
+      x: pred.x - pred.width / 2,   // convert center → top-left
+      y: pred.y - pred.height / 2,
+      width: pred.width,
+      height: pred.height,
+    },
+    confidence: pred.confidence,
+    class: pred.class || 'microplastic',
+    classId: pred.class_id ?? 0,
+    detectionId: pred.detection_id,
+  }))
+
+  return {
+    count: detections.length,
+    detections,
+    inferenceTime,
+    imageSize: { width: originalWidth, height: originalHeight },
   }
 }
 
-/**
- * Preprocess image for model input
- * Resizes to 640x640 and normalizes pixel values
- */
-function preprocessImage(imageElement) {
-  return tf.tidy(() => {
-    // Convert image to tensor
-    let tensor = tf.browser.fromPixels(imageElement)
-    
-    // Resize to model input size (640x640)
-    const resized = tf.image.resizeBilinear(tensor, [640, 640])
-    
-    // Normalize pixel values to [0, 1]
-    const normalized = resized.div(255.0)
-    
-    // Add batch dimension: [1, 640, 640, 3]
-    const batched = normalized.expandDims(0)
-    
-    return batched
+function getImageDimensions(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve({ width: img.width, height: img.height })
+    img.onerror = reject
+    img.src = dataUrl
   })
 }
 
-/**
- * Postprocess model output to extract bounding boxes and confidence scores
- * YOLOv12 output format: [batch, num_detections, 6] where 6 = [x, y, w, h, confidence, class]
- */
-function postprocessOutput(output, originalWidth, originalHeight, confidenceThreshold) {
-  const detections = []
-  
-  // For demonstration, we'll simulate detections
-  // In production, parse actual model output:
-  const outputArray = output.arraySync ? output.arraySync() : output
-  
-  // Placeholder: Generate sample detections for demonstration
-  // Replace this with actual YOLOv12 output parsing
-  const numDetections = Math.floor(Math.random() * 10) + 5 // Simulate 5-15 detections
-  
-  for (let i = 0; i < numDetections; i++) {
-    const confidence = 0.5 + Math.random() * 0.5 // 0.5 to 1.0
-    
-    if (confidence >= confidenceThreshold) {
-      // Simulate bounding box coordinates (normalized 0-1)
-      const x = Math.random() * 0.7
-      const y = Math.random() * 0.7
-      const w = 0.1 + Math.random() * 0.2
-      const h = 0.1 + Math.random() * 0.2
-      
-      // Scale to original image dimensions
-      const bbox = {
-        x: x * originalWidth,
-        y: y * originalHeight,
-        width: w * originalWidth,
-        height: h * originalHeight
-      }
-      
-      detections.push({
-        bbox: bbox,
-        confidence: confidence,
-        class: 'microplastic',
-        classId: 0
-      })
-    }
-  }
-  
-  // Sort by confidence (highest first)
-  detections.sort((a, b) => b.confidence - a.confidence)
-  
-  return detections
-}
-
-/**
- * Main detection function
- * Takes image data URL, runs inference, and returns detection results
- */
-export async function detectMicroplastics(imageDataUrl, confidenceThreshold = 0.5) {
-  try {
-    // Load model if not already loaded
-    await loadModel()
-    
-    // Create image element from data URL
-    const img = new Image()
-    await new Promise((resolve, reject) => {
-      img.onload = resolve
-      img.onerror = reject
-      img.src = imageDataUrl
-    })
-    
-    const originalWidth = img.width
-    const originalHeight = img.height
-    
-    // Preprocess image
-    const preprocessed = preprocessImage(img)
-    
-    // Run inference
-    console.log('Running inference...')
-    const startTime = performance.now()
-    
-    // For production, replace this with actual model prediction:
-    // const predictions = await model.predict(preprocessed)
-    // const output = predictions[0] // YOLOv12 typically outputs single tensor
-    
-    // Placeholder: Simulate inference delay
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // Simulate model output (replace with actual prediction)
-    const mockOutput = tf.zeros([1, 100, 6]) // Placeholder shape
-    
-    const inferenceTime = performance.now() - startTime
-    console.log(`Inference completed in ${inferenceTime.toFixed(2)}ms`)
-    
-    // Postprocess to get detections
-    const detections = postprocessOutput(mockOutput, originalWidth, originalHeight, confidenceThreshold)
-    
-    // Cleanup tensors
-    preprocessed.dispose()
-    mockOutput.dispose()
-    
-    return {
-      count: detections.length,
-      detections: detections,
-      inferenceTime: inferenceTime,
-      imageSize: {
-        width: originalWidth,
-        height: originalHeight
-      }
-    }
-  } catch (error) {
-    console.error('Error during detection:', error)
-    throw error
-  }
-}
-
-/**
- * Initialize model on app load (optional - can lazy load on first use)
- */
+// Keep this export so App.jsx doesn't break — it's now a no-op since there's no local model to warm up
 export async function initializeModel() {
-  try {
-    await loadModel()
-    console.log('Model initialized and ready')
-  } catch (error) {
-    console.warn('Model initialization failed:', error)
-    // App can still work, model will load on first use
-  }
+  // No-op: model is hosted on Roboflow, nothing to initialize locally
 }
-

@@ -1,7 +1,7 @@
 {
   "name": "microplastic-detection-app",
   "version": "1.0.0",
-  "description": "Web-based microplastics detection application using YOLOv12 and TensorFlow.js",
+  "description": "Web-based microplastics detection application using RF-DETR and Roboflow Inference API",
   "main": "index.html",
   "scripts": {
     "dev": "vite",
@@ -13,8 +13,7 @@
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "@tensorflow/tfjs": "^4.15.0"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",

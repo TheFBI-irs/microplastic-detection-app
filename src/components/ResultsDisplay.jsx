@@ -111,7 +111,7 @@ function ResultsDisplay({
           onChange={handleThresholdSlider}
           className="slider"
         />
-        <small>Adjust to filter detections by confidence level</small>
+        <small>Adjust to filter detections. Recommended: 0.35 (balanced precision/recall)</small>
       </div>
 
       {/* Statistics Panel */}

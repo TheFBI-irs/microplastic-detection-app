@@ -1,24 +1,22 @@
 # Microplastics Detection Web Application
 
-A single-page web application for detecting and counting microplastic particles in Nile Red-stained water samples using YOLOv12 object detection model running entirely in the browser via TensorFlow.js.
+A single-page web application for detecting and counting microplastic particles in Nile Red-stained water samples using an RF-DETR model hosted on Roboflow.
 
 ## Features
 
-- **Client-Side Processing**: All inference runs in the browser - no backend required
-- **Real-Time Detection**: Fast inference (<2 seconds per image)
+- **AI-Powered Detection**: RF-DETR model via Roboflow Hosted Inference API
+- **Real-Time Detection**: Fast cloud inference
 - **Mobile-First Design**: Optimized for smartphone use with camera capture
-- **Offline Capable**: Works offline after initial page load
-- **Privacy-Focused**: Images never leave your device
 - **Interactive Results**: Bounding boxes, particle counts, and particles/mL calculations
 - **Export Options**: Download results as CSV or JSON
 - **History Tracking**: Local storage of analysis history
 - **Comparison View**: Side-by-side comparison of multiple samples
-- **Adjustable Confidence**: Slider to filter detections by confidence threshold
+- **Adjustable Confidence**: Slider to filter detections by confidence threshold (recommended: 0.35)
 
 ## Technology Stack
 
 - **React 18** - UI framework
-- **TensorFlow.js** - Model inference in the browser
+- **Roboflow Inference API** - Cloud-hosted RF-DETR model
 - **Vite** - Build tool and dev server
 - **Modern CSS** - Mobile-first responsive design
 
@@ -27,7 +25,8 @@ A single-page web application for detecting and counting microplastic particles 
 ### Prerequisites
 
 - Node.js 16+ and npm/yarn
-- A YOLOv12 model converted to TensorFlow.js format
+- Roboflow account and API key
+- Roboflow model ID (format: `workspace/model-name/version`)
 
 ### Installation
 
@@ -37,25 +36,18 @@ A single-page web application for detecting and counting microplastic particles 
    npm install
    ```
 
-3. Place your YOLOv12 model in the `public/models/` directory:
-   - Model format: TensorFlow.js Layers Model (`.json` + `.bin` files)
-   - Or TensorFlow.js Graph Model (SavedModel format)
-   - Recommended name: `yolov12.json` or `yolov12/model.json`
-
-4. Update the model loading path in `src/utils/modelInference.js`:
-   ```javascript
-   // Replace the placeholder with actual model loading:
-   model = await tf.loadLayersModel('/models/yolov12.json')
-   // or
-   model = await tf.loadGraphModel('/models/yolov12/model.json')
+3. Copy `.env.example` to `.env` and add your credentials:
+   ```
+   VITE_ROBOFLOW_API_KEY=your_actual_api_key_here
+   VITE_ROBOFLOW_MODEL_ID=your-workspace/model-name/version_number
    ```
 
-5. Start the development server:
+4. Start the development server:
    ```bash
    npm run dev
    ```
 
-6. Open your browser to `http://localhost:3000`
+5. Open your browser to `http://localhost:3000`
 
 ### Building for Production
 
@@ -69,63 +61,20 @@ The built files will be in the `dist/` directory, ready for deployment to:
 - Vercel
 - Any static hosting service
 
-## Model Conversion
+## Model
 
-### Converting YOLOv12 TFLite to TensorFlow.js
+This app uses an **RF-DETR model hosted on Roboflow**. No local model files are needed.
 
-If you have a TFLite model, you'll need to convert it to TensorFlow.js format:
+### Setup
 
-1. **Using TensorFlow.js Converter**:
-   ```bash
-   pip install tensorflowjs
-   tensorflowjs_converter --input_format=tf_lite --output_format=tfjs_graph_model \
-     --quantize_float16 yolov12.tflite public/models/yolov12
-   ```
+1. Create a Roboflow account at [roboflow.com](https://roboflow.com)
+2. Get your API key from your Roboflow dashboard
+3. Note your model ID (format: `workspace-name/model-name/version`)
+4. Add both to your `.env` file (see `.env.example`)
 
-2. **Or convert from SavedModel/Python**:
-   ```bash
-   tensorflowjs_converter --input_format=tf_saved_model \
-     --output_format=tfjs_graph_model \
-     --quantize_float16 saved_model_path public/models/yolov12
-   ```
+### Why RF-DETR over YOLO?
 
-### Model Requirements
-
-- **Input Size**: 640x640 pixels (standard YOLOv12 input)
-- **Output Format**: Bounding boxes with format `[x, y, width, height, confidence, class]`
-- **Output Shape**: `[batch, num_detections, 6]`
-
-### Updating Model Loading Code
-
-Once you have your model converted, update `src/utils/modelInference.js`:
-
-1. Replace the placeholder model loading code
-2. Update the `postprocessOutput` function to match your model's actual output format
-3. Adjust preprocessing if your model expects different normalization
-
-Example:
-```javascript
-async function loadModel() {
-  if (model) return model
-  
-  // Load your actual model
-  model = await tf.loadGraphModel('/models/yolov12/model.json')
-  return model
-}
-
-async function detectMicroplastics(imageDataUrl, confidenceThreshold) {
-  // ... preprocessing ...
-  
-  // Run actual inference
-  const predictions = await model.predict(preprocessed)
-  const output = predictions[0] // Adjust based on your model output
-  
-  // Parse actual output format
-  const detections = parseYOLOOutput(output, originalWidth, originalHeight, confidenceThreshold)
-  
-  // ... return results ...
-}
-```
+RF-DETR uses transformer-based global attention, which outperforms YOLO for small-object detection in fluorescence microscopy images. In testing across 21 trained models, RF-DETR (Models 18–21) achieved 87–89% mAP@50 vs. ~82% peak for YOLOv11.
 
 ## Usage
 
@@ -135,7 +84,7 @@ async function detectMicroplastics(imageDataUrl, confidenceThreshold) {
 2. **Add Metadata** (Optional): Enter location, date, water source, and sample volume
 3. **Analyze**: The app automatically runs detection when an image is uploaded
 4. **Review Results**: View detected particles with bounding boxes
-5. **Adjust Threshold**: Use the slider to filter detections by confidence
+5. **Adjust Threshold**: Use the slider to filter detections by confidence (recommended: 0.35)
 6. **Export**: Download annotated images or export data as CSV/JSON
 
 ### Sample Preparation
@@ -161,7 +110,6 @@ Add multiple samples to the comparison view to analyze them side-by-side. Useful
 ```
 microplastic_web_app/
 ├── public/
-│   └── models/          # Place your TensorFlow.js model here
 ├── src/
 │   ├── components/      # React components
 │   │   ├── ImageUpload.jsx
@@ -171,13 +119,14 @@ microplastic_web_app/
 │   │   ├── MetadataInput.jsx
 │   │   └── ComparisonView.jsx
 │   ├── utils/           # Utility functions
-│   │   ├── modelInference.js  # Model loading and inference
+│   │   ├── modelInference.js  # Roboflow API inference
 │   │   ├── imageUtils.js      # Image processing
 │   │   ├── storage.js         # Local storage management
 │   │   └── export.js          # CSV/JSON export
 │   ├── App.jsx          # Main application component
 │   ├── main.jsx         # React entry point
 │   └── styles.css       # Application styles
+├── .env.example         # Template for environment variables
 ├── index.html
 ├── package.json
 ├── vite.config.js
@@ -196,11 +145,7 @@ Edit `src/styles.css` to customize:
 
 ### Model Configuration
 
-Edit `src/utils/modelInference.js` to:
-- Change input image size
-- Adjust preprocessing steps
-- Modify postprocessing logic
-- Update confidence thresholds
+The default confidence threshold is 0.35 (validated for Model 21). Adjust in the UI slider or in `src/App.jsx` if changing the default.
 
 ### Features
 
@@ -209,13 +154,6 @@ All components are modular and can be easily modified or extended:
 - Extend export formats in `export.js`
 - Add new visualization options in `ResultsDisplay.jsx`
 
-## Performance Optimization
-
-- **Model Quantization**: Use float16 quantization when converting models
-- **Image Preprocessing**: Images are automatically resized to 640x640
-- **Lazy Loading**: Model loads on first use (or initialize on app load)
-- **Tensor Cleanup**: Tensors are disposed after use to free memory
-
 ## Browser Compatibility
 
 - Chrome/Edge 90+
@@ -223,20 +161,19 @@ All components are modular and can be easily modified or extended:
 - Safari 14+
 - Mobile browsers (iOS Safari, Chrome Mobile)
 
-Requires WebGL support for TensorFlow.js GPU acceleration.
+Requires an internet connection for Roboflow API inference.
 
 ## Troubleshooting
 
-### Model Not Loading
-- Check that model files are in `public/models/`
-- Verify model format is TensorFlow.js compatible
-- Check browser console for errors
-- Ensure CORS is configured if loading from different domain
+### No Roboflow API Key
+- Ensure `.env` exists with `VITE_ROBOFLOW_API_KEY` and `VITE_ROBOFLOW_MODEL_ID`
+- Restart the dev server after changing `.env`
+- For production builds, set these as build environment variables
 
-### Slow Inference
-- Enable WebGL backend: `await tf.setBackend('webgl')`
-- Use quantized model (float16)
-- Reduce input image size if model supports it
+### Roboflow API Errors
+- Verify your API key is valid at [roboflow.com](https://roboflow.com)
+- Check model ID format: `workspace/project/version`
+- Ensure your Roboflow plan includes hosted inference
 
 ### Storage Quota Exceeded
 - History is limited to 50 entries
@@ -253,7 +190,6 @@ Feel free to submit issues, fork the repository, and create pull requests for an
 
 ## Acknowledgments
 
-- Built with TensorFlow.js
-- Uses YOLOv12 object detection architecture
+- Built with Roboflow Inference API
+- Uses RF-DETR object detection architecture
 - Designed for environmental research and education
-

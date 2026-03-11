@@ -1,96 +1,64 @@
 # Deployment Guide
 
-This application is a static site that can be deployed to any static hosting service. Here are instructions for popular platforms:
+This application is a static site that can be deployed to GitHub Pages, Netlify, Vercel, or any static host. Inference runs via Roboflow's Hosted API — no model files are bundled.
+
+## Required Environment Variables
+
+Set these at **build time** (Vite embeds them via `import.meta.env`):
+
+| Variable | Description |
+|----------|-------------|
+| `VITE_ROBOFLOW_API_KEY` | Your Roboflow API key from [roboflow.com/account/api](https://roboflow.com/account/api) |
+| `VITE_ROBOFLOW_MODEL_ID` | Model ID (format: `workspace/model-name/version`) |
+
+These are the same variables used locally in `.env`. Configure them in your platform's environment/build settings.
 
 ## GitHub Pages
 
-1. Build the project:
+1. Build the project with env vars set:
    ```bash
-   npm run build
+   VITE_ROBOFLOW_API_KEY=your_key VITE_ROBOFLOW_MODEL_ID=workspace/model/21 npm run build
    ```
 
-2. In your repository settings, go to Pages
-3. Set source to `gh-pages` branch or `main` branch `/dist` folder
-4. Or use GitHub Actions (see below)
+2. In repository settings → Pages, set source to `gh-pages` branch or `main` branch `/dist` folder.
 
-### GitHub Actions Workflow
-
-Create `.github/workflows/deploy.yml`:
-
-```yaml
-name: Deploy to GitHub Pages
-
-on:
-  push:
-    branches: [ main ]
-
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - run: npm install
-      - run: npm run build
-      - uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-```
+3. **GitHub Actions**: If using Actions, add the env vars as repository secrets (`ROBOFLOW_API_KEY`, `ROBOFLOW_MODEL_ID`) and pass them into the build step. Update `.github/workflows/deploy.yml` to include:
+   ```yaml
+   env:
+     VITE_ROBOFLOW_API_KEY: ${{ secrets.VITE_ROBOFLOW_API_KEY }}
+     VITE_ROBOFLOW_MODEL_ID: ${{ secrets.VITE_ROBOFLOW_MODEL_ID }}
+   ```
+   (Ensure these secrets exist in the repo settings.)
 
 ## Netlify
 
-1. Connect your repository to Netlify
+1. Connect your repository to Netlify.
 2. Build settings:
    - Build command: `npm run build`
    - Publish directory: `dist`
-3. Deploy!
+3. Environment variables: In Site settings → Environment variables, add `VITE_ROBOFLOW_API_KEY` and `VITE_ROBOFLOW_MODEL_ID`.
+4. Deploy.
 
-Or use the Netlify CLI:
+Or with Netlify CLI:
 ```bash
-npm install -g netlify-cli
 netlify deploy --prod
 ```
+Configure env vars in the Netlify dashboard for the site.
 
 ## Vercel
 
-1. Install Vercel CLI:
-   ```bash
-   npm install -g vercel
-   ```
+1. Connect your repository in the Vercel dashboard.
+2. Add `VITE_ROBOFLOW_API_KEY` and `VITE_ROBOFLOW_MODEL_ID` under Project Settings → Environment Variables.
+3. Build and deploy (Vercel auto-detects Vite).
 
-2. Deploy:
-   ```bash
-   vercel
-   ```
+Or with Vercel CLI:
+```bash
+vercel --prod
+```
+Set env vars in the project settings on vercel.com.
 
-Or connect your GitHub repository directly in the Vercel dashboard.
+## Notes
 
-## Important Notes
-
-### Model Files
-
-- Ensure your model files are in `public/models/` before building
-- Model files will be included in the build output
-- For large models, consider using a CDN and loading from there
-
-### Environment Variables
-
-If you need environment variables:
-- Create `.env.production` for production builds
-- Access via `import.meta.env.VITE_YOUR_VAR` in code
-
-### CORS
-
-If loading models from a different domain:
-- Configure CORS headers on your model hosting
-- Or host models on the same domain as the app
-
-### Performance
-
-- Enable compression on your hosting service
-- Consider using a CDN for faster global delivery
-- Optimize model size with quantization
-
+- **Build-time only**: Values are baked in at build; no server-side env loading.
+- **No model files**: Inference is via Roboflow API; nothing to host locally.
+- **CORS**: Roboflow API supports browser requests; no extra CORS setup needed from the app side.

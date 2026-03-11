@@ -23,7 +23,7 @@ function App() {
     waterSource: '',
     sampleVolume: 1.0 // Default 1 mL
   })
-  const [confidenceThreshold, setConfidenceThreshold] = useState(0.5)
+  const [confidenceThreshold, setConfidenceThreshold] = useState(0.35)
   const [showInstructions, setShowInstructions] = useState(true)
   const [showHistory, setShowHistory] = useState(false)
   const [history, setHistory] = useState(getHistory())
@@ -46,7 +46,7 @@ function App() {
   }
 
   /**
-   * Analyze uploaded image using YOLOv12 model
+   * Analyze uploaded image using RF-DETR model via Roboflow API
    */
   const analyzeImage = async (imageData) => {
     try {
@@ -213,7 +213,7 @@ function App() {
 
       {/* Footer */}
       <footer className="app-footer">
-        <p>Powered by TensorFlow.js & YOLOv12 | Client-Side Processing</p>
+        <p>Powered by RF-DETR & Roboflow | AI-Powered Detection</p>
       </footer>
     </div>
   )
