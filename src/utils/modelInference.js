@@ -25,19 +25,17 @@ export async function detectMicroplastics(imageDataUrl, confidenceThreshold = 0.
   // Get original image dimensions for scaling bounding boxes back
   const { width: originalWidth, height: originalHeight } = await getImageDimensions(imageDataUrl)
 
-  // Convert data URL to blob for FormData upload (avoids base64 encoding issues in browser)
-  const imageBlob = await fetch(imageDataUrl).then(r => r.blob())
+  // Roboflow Hosted API expects raw base64 in POST body (no FormData — that returns 405)
+  const base64Image = imageDataUrl.includes(',') ? imageDataUrl.split(',')[1] : imageDataUrl
 
   const startTime = performance.now()
-
-  const formData = new FormData()
-  formData.append('file', imageBlob, 'image.jpg')
 
   const url = `https://detect.roboflow.com/${ROBOFLOW_MODEL_ID}?api_key=${ROBOFLOW_API_KEY}&confidence=${Math.round(confidenceThreshold * 100)}`
 
   const response = await fetch(url, {
     method: 'POST',
-    body: formData,
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: base64Image,
   })
 
   if (!response.ok) {
