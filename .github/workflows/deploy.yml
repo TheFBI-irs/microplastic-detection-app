@@ -36,11 +36,8 @@ jobs:
         run: npm run build
         env:
           VITE_BASE_PATH: /microplastic-detection-app/
-          # Optional: Add Roboflow credentials as GitHub Secrets
-          # VITE_ROBOFLOW_API_KEY: ${{ secrets.ROBOFLOW_API_KEY }}
-          # VITE_ROBOFLOW_WORKSPACE: ${{ secrets.ROBOFLOW_WORKSPACE }}
-          # VITE_ROBOFLOW_PROJECT: ${{ secrets.ROBOFLOW_PROJECT }}
-          # VITE_ROBOFLOW_VERSION: ${{ secrets.ROBOFLOW_VERSION }}
+          VITE_ROBOFLOW_API_KEY: ${{ secrets.VITE_ROBOFLOW_API_KEY }}
+          VITE_ROBOFLOW_MODEL_ID: ${{ secrets.VITE_ROBOFLOW_MODEL_ID }}
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
