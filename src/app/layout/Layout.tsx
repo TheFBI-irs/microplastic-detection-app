@@ -1,14 +1,26 @@
-import { Outlet } from 'react-router-dom'
-import { Link } from 'react-router-dom'
+import { Outlet, Link, useLocation } from 'react-router-dom'
 
 export function Layout() {
+  const location = useLocation()
+  const isHome = location.pathname === '/' || location.pathname === ''
+
   return (
     <div className="min-h-screen bg-bg">
       <header className="glass sticky top-0 z-50 border-b border-white/5">
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4" aria-label="Main navigation">
-          <Link to="/" className="text-lg font-semibold text-primary transition hover:opacity-90">
-            Microplastic Detection
-          </Link>
+          <div className="flex items-center gap-4">
+            {!isHome && (
+              <Link
+                to="/"
+                className="text-sm text-text/80 hover:text-primary transition flex items-center gap-1"
+              >
+                ← Back
+              </Link>
+            )}
+            <Link to="/" className="text-lg font-semibold text-primary transition hover:opacity-90">
+              Microplastic Detection
+            </Link>
+          </div>
           <div className="flex flex-wrap gap-3 text-sm">
             <Link to="/" className="text-text/80 hover:text-primary transition">Home</Link>
             <Link to="/scan" className="text-text/80 hover:text-primary transition">Scan</Link>
