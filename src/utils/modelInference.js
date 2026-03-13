@@ -4,7 +4,30 @@
  */
 
 const ROBOFLOW_API_KEY = import.meta.env.VITE_ROBOFLOW_API_KEY || ''
-const ROBOFLOW_MODEL_ID = import.meta.env.VITE_ROBOFLOW_MODEL_ID || '' // e.g. "microplastics-detection/21"
+const ROBOFLOW_MODEL_ID_RAW = import.meta.env.VITE_ROBOFLOW_MODEL_ID || ''
+
+/**
+ * Normalize model ID: if user pasted full app URL, extract workspace/project/version
+ * e.g. "https://app.roboflow.com/ws/proj/models/proj/39" -> "ws/proj/39"
+ */
+function getModelId() {
+  const raw = ROBOFLOW_MODEL_ID_RAW.trim()
+  if (!raw) return ''
+  // Already in correct format (no protocol)?
+  if (!raw.startsWith('http://') && !raw.startsWith('https://')) return raw
+  try {
+    const u = new URL(raw)
+    // Path like /workspace/project/models/project/39 -> extract workspace/project/39
+    const m = u.pathname.match(/^\/([^/]+)\/([^/]+)\/models\/[^/]+\/(\d+)$/)
+    if (m) return `${m[1]}/${m[2]}/${m[3]}`
+    // Fallback: last 3 path segments as workspace/project/version
+    const parts = u.pathname.replace(/^\/|\/$/g, '').split('/')
+    if (parts.length >= 3) return `${parts[0]}/${parts[1]}/${parts[parts.length - 1]}`
+  } catch (_) {}
+  return raw
+}
+
+const ROBOFLOW_MODEL_ID = getModelId()
 
 /**
  * Run RF-DETR inference via Roboflow Hosted Inference API.
@@ -25,7 +48,7 @@ export async function detectMicroplastics(imageDataUrl, confidenceThreshold = 0.
   // Get original image dimensions for scaling bounding boxes back
   const { width: originalWidth, height: originalHeight } = await getImageDimensions(imageDataUrl)
 
-  // Roboflow Hosted API expects raw base64 in POST body (no FormData — that returns 405)
+  // Roboflow Hosted API: raw base64 in body, per https://docs.roboflow.com/deploy/serverless/object-detection
   const base64Image = imageDataUrl.includes(',') ? imageDataUrl.split(',')[1] : imageDataUrl
 
   const startTime = performance.now()
@@ -38,8 +61,9 @@ export async function detectMicroplastics(imageDataUrl, confidenceThreshold = 0.
     body: base64Image,
   })
 
+  const errText = !response.ok ? await response.text() : ''
+
   if (!response.ok) {
-    const errText = await response.text()
     throw new Error(`Roboflow API error ${response.status}: ${errText}`)
   }
 
