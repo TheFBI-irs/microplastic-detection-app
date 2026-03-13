@@ -10,9 +10,12 @@
     "deploy": "npm run build && echo 'Build complete! Ready for deployment.'"
   },
   "dependencies": {
+    "framer-motion": "^12.36.0",
+    "jspdf": "^4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.21.0"
+    "react-router-dom": "^6.21.0",
+    "recharts": "^3.8.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.45",

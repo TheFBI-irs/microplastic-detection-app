@@ -1,10 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { DetectionCanvas } from '../components/DetectionCanvas'
+import { InteractiveDetectionViewer } from '../components/InteractiveDetectionViewer'
+import { DetectionHeatmap } from '../components/DetectionHeatmap'
 import { drawBoundingBoxes } from '../utils/boundingBoxes'
 import { ParticleCounter } from '../components/ParticleCounter'
 import { ConfidenceSlider } from '../components/ConfidenceSlider'
 import { exportDetectionsCSV, downloadCSV } from '../utils/exportCSV'
+import { generatePDFReport } from '../utils/generateReport'
 import type { InferenceResult } from '../model/rfdetr_inference'
 
 interface LocationState {
@@ -44,6 +46,14 @@ export function Results() {
     downloadCSV(csv, `microplastic-detection-${Date.now()}.csv`)
   }
 
+  const handleGenerateReport = async () => {
+    try {
+      await generatePDFReport(image, result, filtered)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   const handleDownloadImage = () => {
     const canvas = document.createElement('canvas')
     const img = new Image()
@@ -78,15 +88,26 @@ export function Results() {
       />
 
       <div className="mt-8 glass rounded-2xl p-6 overflow-auto">
-        <h2 className="text-lg font-semibold text-primary mb-4">Annotated Image</h2>
-        <DetectionCanvas
+        <h2 className="text-lg font-semibold text-primary mb-4">Interactive Viewer</h2>
+        <InteractiveDetectionViewer
           imageUrl={image}
-          detections={filtered}
-          className="max-w-full rounded-lg"
+          detections={result.detections}
+          confidenceThreshold={confidence}
         />
       </div>
 
+      <div className="mt-8 glass rounded-2xl p-6">
+        <h2 className="text-lg font-semibold text-primary mb-4">Density Heatmap</h2>
+        <DetectionHeatmap imageUrl={image} detections={filtered} />
+      </div>
+
       <div className="mt-8 flex flex-wrap gap-4">
+        <button
+          onClick={handleGenerateReport}
+          className="rounded-lg glass px-6 py-3 font-semibold text-primary hover:bg-white/10"
+        >
+          Generate Report (PDF)
+        </button>
         <button
           onClick={handleExportCSV}
           className="rounded-lg glass px-6 py-3 font-semibold text-primary hover:bg-white/10"

@@ -29,6 +29,12 @@ export function Home() {
           >
             Read Research
           </Link>
+          <Link
+            to="/impact"
+            className="rounded-lg glass px-6 py-3 font-semibold text-primary transition hover:bg-white/10"
+          >
+            Scientific Impact
+          </Link>
         </div>
       </section>
 
@@ -48,6 +54,18 @@ export function Home() {
           <li><strong>Phone microscope attachment</strong> — Low-cost, portable imaging</li>
           <li><strong>RF-DETR AI model</strong> — Object detection for automated particle counting</li>
         </ul>
+      </section>
+
+      <section className="glass rounded-2xl p-8 mb-12">
+        <h2 className="text-2xl font-semibold text-accent mb-4">Scientific Impact</h2>
+        <p className="text-text/90 mb-4">
+          Traditional microplastic detection costs <strong>$500–$1,000 per sample</strong>. This kit delivers
+          accurate detection for <strong>&lt; $50</strong>—making environmental monitoring accessible to
+          schools, citizen science, and developing regions.
+        </p>
+        <Link to="/impact" className="text-primary hover:underline">
+          Learn more →
+        </Link>
       </section>
 
       <section className="glass rounded-2xl p-8">

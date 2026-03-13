@@ -1,3 +1,6 @@
+import { ThresholdChart } from '../components/ThresholdChart'
+import { CountAccuracyChart } from '../components/CountAccuracyChart'
+
 export function Research() {
   const metrics = [
     { label: 'Precision', value: '0.856' },
@@ -36,6 +39,11 @@ export function Research() {
           ))}
         </div>
       </section>
+
+      <div className="grid md:grid-cols-2 gap-8 mb-8">
+        <ThresholdChart />
+        <CountAccuracyChart />
+      </div>
 
       <section className="glass rounded-2xl p-8">
         <h2 className="text-xl font-semibold text-primary mb-4">Expected Accuracy</h2>
