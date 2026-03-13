@@ -1,0 +1,9 @@
+/* Theme variables for consistency */
+:root {
+  --color-bg: #0B0F17;
+  --color-primary: #00E5FF;
+  --color-accent: #FF4D6D;
+  --color-text: #E6EDF3;
+  --radius: 12px;
+  --transition: 0.2s ease;
+}
