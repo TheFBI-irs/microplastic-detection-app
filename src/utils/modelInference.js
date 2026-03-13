@@ -7,22 +7,20 @@ const ROBOFLOW_API_KEY = import.meta.env.VITE_ROBOFLOW_API_KEY || ''
 const ROBOFLOW_MODEL_ID_RAW = import.meta.env.VITE_ROBOFLOW_MODEL_ID || ''
 
 /**
- * Normalize model ID: if user pasted full app URL, extract workspace/project/version
- * e.g. "https://app.roboflow.com/ws/proj/models/proj/39" -> "ws/proj/39"
+ * Normalize model ID for serverless.roboflow.com (project/version format).
+ * If user pasted full app URL, extract project/version.
+ * e.g. ".../microplastic-detection-vbosx/models/microplastic-detection-vbosx/39" -> "microplastic-detection-vbosx/39"
  */
 function getModelId() {
   const raw = ROBOFLOW_MODEL_ID_RAW.trim()
   if (!raw) return ''
-  // Already in correct format (no protocol)?
+  // Already project/version (e.g. microplastic-detection-vbosx/39)?
   if (!raw.startsWith('http://') && !raw.startsWith('https://')) return raw
   try {
     const u = new URL(raw)
-    // Path like /workspace/project/models/project/39 -> extract workspace/project/39
-    const m = u.pathname.match(/^\/([^/]+)\/([^/]+)\/models\/[^/]+\/(\d+)$/)
-    if (m) return `${m[1]}/${m[2]}/${m[3]}`
-    // Fallback: last 3 path segments as workspace/project/version
-    const parts = u.pathname.replace(/^\/|\/$/g, '').split('/')
-    if (parts.length >= 3) return `${parts[0]}/${parts[1]}/${parts[parts.length - 1]}`
+    // Path like /workspace/project/models/project/39 -> extract project/39
+    const m = u.pathname.match(/\/models\/([^/]+)\/(\d+)$/)
+    if (m) return `${m[1]}/${m[2]}`
   } catch (_) {}
   return raw
 }
@@ -53,7 +51,7 @@ export async function detectMicroplastics(imageDataUrl, confidenceThreshold = 0.
 
   const startTime = performance.now()
 
-  const url = `https://detect.roboflow.com/${ROBOFLOW_MODEL_ID}?api_key=${ROBOFLOW_API_KEY}&confidence=${Math.round(confidenceThreshold * 100)}`
+  const url = `https://serverless.roboflow.com/${ROBOFLOW_MODEL_ID}?api_key=${ROBOFLOW_API_KEY}&confidence=${Math.round(confidenceThreshold * 100)}`
 
   const response = await fetch(url, {
     method: 'POST',
