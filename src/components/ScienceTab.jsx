@@ -20,7 +20,7 @@ const protocolSteps = [
   {
     num: 4,
     title: 'Fluorescence Imaging',
-    detail: 'Place the slide in your viewing box. Position the 470nm blue LED at a 45° angle. Attach the orange filter over your phone camera, then clip on the 60x microscope lens. Set camera to highest resolution, ISO 100–200, manual focus, flash disabled. Capture 10–15 images from different areas of the slide.',
+    detail: 'Place the slide in your viewing box. Attach the orange filter over your phone camera, then clip on the 60x microscope lens. Set camera to highest resolution, ISO 100–200, manual focus, flash disabled. Capture 10–15 images from different areas of the slide.',
     note: 'The orange filter blocks the blue excitation light and only passes the orange/yellow fluorescence emission from Nile Red-stained particles.',
   },
   {
@@ -32,13 +32,15 @@ const protocolSteps = [
 ];
 
 const kitComponents = [
-  { item: '60x clip-on microscope lens', cost: '$12', source: 'Amazon' },
-  { item: '470nm blue LED flashlight', cost: '$15', source: 'Amazon' },
-  { item: 'Orange filter (wratten #21)', cost: '$8', source: 'Amazon' },
-  { item: 'Nile Red dye (10mg)', cost: '$10', source: 'Sigma-Aldrich' },
-  { item: 'Glass vials (pack of 20)', cost: '$6', source: 'Amazon' },
-  { item: 'Glass microscope slides', cost: '$5', source: 'Amazon' },
-  { item: 'Acetone (solvent, 100mL)', cost: '$4', source: 'Hardware store' },
+  { item: '60x clip-on microscope lens', cost: '$19.25', source: 'Amazon' },
+  { item: '470nm blue LEDs', cost: '$1', source: 'Amazon' },
+  { item: 'Orange filter (wratten #21)', cost: '$0.25', source: 'Amazon' },
+  { item: 'Nile Red (10µg)', cost: '$2', source: 'Sigma-Aldrich' },
+  { item: 'Glass vials (10mL)', cost: '$5.00', source: 'Amazon' },
+  { item: 'Glass microscope slides (100)', cost: '$10', source: 'Amazon' },
+  { item: 'Acetone (solvent, 50mL)', cost: '$2.5', source: 'Hardware store' },
+  { item: 'Pipettes (100)', cost: '$8', source: 'Hardware store' },
+  { item: '3d Print Filament (to make box)', cost: '$2', source: 'Hardware store' },
 ];
 
 export default function ScienceTab() {
@@ -149,7 +151,7 @@ export default function ScienceTab() {
 
       {/* Kit Bill of Materials */}
       <section>
-        <h3 className="text-2xl font-bold tracking-tight mb-8">Kit Components</h3>
+        <h3 className="text-2xl font-bold tracking-tight mb-8">Kit Components (For 100 tests)</h3>
         <div className="card overflow-hidden">
           <table className="w-full text-sm">
             <thead>

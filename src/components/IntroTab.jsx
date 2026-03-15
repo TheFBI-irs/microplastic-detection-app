@@ -190,10 +190,10 @@ export default function IntroTab({ onNavigate }) {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden py-24">
+      <section className="relative min-[75vh] sm:min-h-[85vh] flex items-center justify-center overflow-hidden py-12 sm:py-24">
         <FloatingParticles />
 
-        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-8">
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-2 sm:pt-8">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-8">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
@@ -230,7 +230,13 @@ export default function IntroTab({ onNavigate }) {
       <CostComparisonGraph />
 
       {/* Primary Action Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mb-4">
+          Ready to See the Invisible?
+        </h2>
+        <p className="text-slate-400 mb-8 max-w-2xl mx-auto text-sm sm:text-base">
+          Start identifying and counting microplastic particles in your water samples right now, directly from your device.
+        </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
             onClick={() => onNavigate('scan')}

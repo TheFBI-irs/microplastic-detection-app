@@ -22,10 +22,10 @@ export default function Header({ activeTab, onTabChange }) {
           {/* Model badges (hidden on small screens) */}
           <div className="hidden sm:flex items-center gap-2">
             <span className="text-xs font-medium text-cyan-300 border border-cyan-500/40 rounded-full px-3 py-1">
-              mAP@50: 89.4%
+              GSDSEF 2026
             </span>
             <span className="text-xs font-medium text-cyan-300 border border-cyan-500/40 rounded-full px-3 py-1">
-              RF-DETR 2×L
+              SR - Earth and Environmental Sciences
             </span>
           </div>
         </div>
