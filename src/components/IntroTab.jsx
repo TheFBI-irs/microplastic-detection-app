@@ -111,22 +111,22 @@ function CostComparisonGraph() {
   const scrollPerBar = 0.8 / baseCount;
 
   return (
-    <section ref={containerRef} className="relative h-[250vh] -mt-20">
+    <section ref={containerRef} className="relative h-[250vh]">
       {/* Sticky wrapper that locks the graph in the viewport */}
-      <div className="sticky top-0 h-screen w-full flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-5xl card p-8 md:p-12 relative overflow-hidden shadow-2xl shadow-cyan-900/10">
+      <div className="sticky top-0 h-[100svh] w-full flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-5xl card p-5 sm:p-8 md:p-12 relative overflow-hidden shadow-2xl shadow-cyan-900/10">
           {/* Subtle background glow */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         
-        <h3 className="text-3xl font-bold tracking-tight mb-4 text-center text-slate-100">
+        <h3 className="text-xl sm:text-3xl font-bold tracking-tight mb-2 sm:mb-4 text-center text-slate-100">
           The Financial Barrier to Microplastic Research
         </h3>
-        <p className="text-slate-400 text-center mb-12 text-lg max-w-2xl mx-auto leading-relaxed">
+        <p className="text-slate-400 text-center mb-5 sm:mb-12 text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed">
           Traditional microplastic analysis requires massive capital investment. 
           Our kit reduces equipment costs by <span className="text-cyan-400 font-bold">99.9%</span>.
         </p>
         
-        <div className="space-y-6">
+        <div className="space-y-3 sm:space-y-6">
           {data.map((item, i) => {
             const widthPct = Math.max((item.cost / maxCost) * 100, 0.5); // ensure at least 0.5% width
             
@@ -150,7 +150,7 @@ function CostComparisonGraph() {
 
             return (
               <div key={item.method} className="relative">
-                <motion.div style={{ opacity }} className="flex justify-between text-sm sm:text-base font-medium mb-2">
+                <motion.div style={{ opacity }} className="flex justify-between text-xs sm:text-base font-medium mb-1 sm:mb-2">
                   <span className={item.isHighlight ? "text-cyan-400 font-bold" : "text-slate-300"}>
                     {item.method}
                   </span>
@@ -158,7 +158,7 @@ function CostComparisonGraph() {
                     ${item.cost.toLocaleString()}
                   </span>
                 </motion.div>
-                <div className="w-full bg-slate-800/80 rounded-full h-4 sm:h-5 overflow-hidden border border-slate-700/50">
+                <div className="w-full bg-slate-800/80 rounded-full h-3 sm:h-5 overflow-hidden border border-slate-700/50">
                   <motion.div
                     className={`${item.color} h-full rounded-full`}
                     style={{ width: barWidth }}
@@ -190,10 +190,10 @@ export default function IntroTab({ onNavigate }) {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden py-24">
         <FloatingParticles />
 
-        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-8">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-8">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
@@ -209,31 +209,12 @@ export default function IntroTab({ onNavigate }) {
             <span className="gradient-text">With AI Precision</span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-16 leading-relaxed">
             A $60 fluorescence microscopy kit paired with an RF-DETR transformer model
             that detects microplastic particles with{' '}
             <span className="text-cyan-400 font-semibold">89.4% mAP@50 accuracy</span>,
             making water quality testing accessible to everyone.
           </p>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <button
-              onClick={() => onNavigate('scan')}
-              className="btn-primary text-lg px-8 py-4 group"
-            >
-              Start Scanning
-              <svg className="inline-block w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </button>
-            <button
-              onClick={() => onNavigate('science')}
-              className="btn-secondary text-lg px-8 py-4"
-            >
-              Learn the Science
-            </button>
-          </div>
 
           {/* Stat cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -247,6 +228,27 @@ export default function IntroTab({ onNavigate }) {
 
       {/* Cost Comparison Graph */}
       <CostComparisonGraph />
+
+      {/* Primary Action Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button
+            onClick={() => onNavigate('scan')}
+            className="btn-primary text-lg px-8 py-4 group"
+          >
+            Start Scanning
+            <svg className="inline-block w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </button>
+          <button
+            onClick={() => onNavigate('science')}
+            className="btn-secondary text-lg px-8 py-4"
+          >
+            Learn the Science
+          </button>
+        </div>
+      </section>
 
       {/* Problem / Solution row */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
