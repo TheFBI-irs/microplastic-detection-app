@@ -83,7 +83,7 @@ function FloatingParticles() {
 
 function CostComparisonGraph() {
   const containerRef = useRef(null);
-  
+
   // "start start" starts animation when top of the 250vh container hits the top of the viewport
   // "end end" finishes animation when the bottom hits the bottom of the viewport
   const { scrollYProgress } = useScroll({
@@ -99,7 +99,7 @@ function CostComparisonGraph() {
     { method: 'Py-GC/MS', cost: 150000, color: 'bg-slate-700' },
     { method: 'Scanning Electron Microscopy (SEM)', cost: 200000, color: 'bg-slate-700' },
   ];
-  
+
   const ourKit = { method: 'Our Kit (Fluorescence Microscopy)', cost: 50, color: 'bg-cyan-500', isHighlight: true };
   const data = [...baseData, ourKit];
 
@@ -111,64 +111,64 @@ function CostComparisonGraph() {
   const scrollPerBar = 0.8 / baseCount;
 
   return (
-    <section ref={containerRef} className="relative h-[250vh]">
+    <section ref={containerRef} className="relative h-[500vh]">
       {/* Sticky wrapper that locks the graph in the viewport */}
       <div className="sticky top-0 h-[100svh] w-full flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-5xl card p-5 sm:p-8 md:p-12 relative overflow-hidden shadow-2xl shadow-cyan-900/10">
           {/* Subtle background glow */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        
-        <h3 className="text-xl sm:text-3xl font-bold tracking-tight mb-2 sm:mb-4 text-center text-slate-100">
-          The Financial Barrier to Microplastic Research
-        </h3>
-        <p className="text-slate-400 text-center mb-5 sm:mb-12 text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed">
-          Traditional microplastic analysis requires massive capital investment. 
-          Our kit reduces equipment costs by <span className="text-cyan-400 font-bold">99.9%</span>.
-        </p>
-        
-        <div className="space-y-3 sm:space-y-6">
-          {data.map((item, i) => {
-            const widthPct = Math.max((item.cost / maxCost) * 100, 0.5); // ensure at least 0.5% width
-            
-            let scrollStart, scrollEnd;
-            if (item.isHighlight) {
-              // Our kit animates in the final 20% of the scroll progress
-              scrollStart = 0.8;
-              scrollEnd = 1.0;
-            } else {
-              // Sequential animation for the traditional methods
-              scrollStart = i * scrollPerBar;
-              scrollEnd = (i + 1) * scrollPerBar;
-            }
 
-            // Map scroll progress 0->1 to 0%->widthPct% based on the item's specific scroll window
-            const barWidth = useTransform(scrollYProgress, [scrollStart, scrollEnd], ["0%", `${widthPct}%`]);
+          <h3 className="text-xl sm:text-3xl font-bold tracking-tight mb-2 sm:mb-4 text-center text-slate-100">
+            The Financial Barrier to Microplastic Research
+          </h3>
+          <p className="text-slate-400 text-center mb-5 sm:mb-12 text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed">
+            Traditional microplastic analysis requires massive capital investment.
+            Our kit reduces equipment costs by <span className="text-cyan-400 font-bold">99.9%</span>.
+          </p>
 
-            // Fade in the text just before the bar starts growing
-            const opacityStart = Math.max(0, scrollStart - 0.05);
-            const opacity = useTransform(scrollYProgress, [opacityStart, scrollStart + 0.05], [0, 1]);
+          <div className="space-y-3 sm:space-y-6">
+            {data.map((item, i) => {
+              const widthPct = Math.max((item.cost / maxCost) * 100, 0.5); // ensure at least 0.5% width
 
-            return (
-              <div key={item.method} className="relative">
-                <motion.div style={{ opacity }} className="flex justify-between text-xs sm:text-base font-medium mb-1 sm:mb-2">
-                  <span className={item.isHighlight ? "text-cyan-400 font-bold" : "text-slate-300"}>
-                    {item.method}
-                  </span>
-                  <span className={item.isHighlight ? "text-cyan-400 font-bold tracking-tight" : "text-slate-400 font-mono"}>
-                    ${item.cost.toLocaleString()}
-                  </span>
-                </motion.div>
-                <div className="w-full bg-slate-800/80 rounded-full h-3 sm:h-5 overflow-hidden border border-slate-700/50">
-                  <motion.div
-                    className={`${item.color} h-full rounded-full`}
-                    style={{ width: barWidth }}
-                  />
+              let scrollStart, scrollEnd;
+              if (item.isHighlight) {
+                // Our kit animates in the final 20% of the scroll progress
+                scrollStart = 0.8;
+                scrollEnd = 1.0;
+              } else {
+                // Sequential animation for the traditional methods
+                scrollStart = i * scrollPerBar;
+                scrollEnd = (i + 1) * scrollPerBar;
+              }
+
+              // Map scroll progress 0->1 to 0%->widthPct% based on the item's specific scroll window
+              const barWidth = useTransform(scrollYProgress, [scrollStart, scrollEnd], ["0%", `${widthPct}%`]);
+
+              // Fade in the text just before the bar starts growing
+              const opacityStart = Math.max(0, scrollStart - 0.05);
+              const opacity = useTransform(scrollYProgress, [opacityStart, scrollStart + 0.05], [0, 1]);
+
+              return (
+                <div key={item.method} className="relative">
+                  <motion.div style={{ opacity }} className="flex justify-between text-xs sm:text-base font-medium mb-1 sm:mb-2">
+                    <span className={item.isHighlight ? "text-cyan-400 font-bold" : "text-slate-300"}>
+                      {item.method}
+                    </span>
+                    <span className={item.isHighlight ? "text-cyan-400 font-bold tracking-tight" : "text-slate-400 font-mono"}>
+                      ${item.cost.toLocaleString()}
+                    </span>
+                  </motion.div>
+                  <div className="w-full bg-slate-800/80 rounded-full h-3 sm:h-5 overflow-hidden border border-slate-700/50">
+                    <motion.div
+                      className={`${item.color} h-full rounded-full`}
+                      style={{ width: barWidth }}
+                    />
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
       </div>
     </section>
   );
