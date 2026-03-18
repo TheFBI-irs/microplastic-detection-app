@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import UploadZone from './UploadZone';
 import ResultsPanel from './ResultsPanel';
 
@@ -29,6 +30,13 @@ const steps = [
   },
 ];
 
+const SAMPLE_IMAGES = [
+  { id: 'sample1', name: 'Low Concentration', path: '/images/demo/demo-1.jpg' },
+  { id: 'sample2', name: 'High Concentration', path: '/images/demo/demo-9.jpg' },
+  { id: 'sample3', name: 'Mixed Sizes', path: '/images/demo/demo-3.jpg' },
+  { id: 'sample4', name: 'Very High Density', path: '/images/demo/IMG_7849_jpg.rf.14ef3fb49ac8dfd9ab7955c0c7a0db76.jpg' },
+];
+
 export default function ScanTab({
   image,
   imageUrl,
@@ -42,6 +50,22 @@ export default function ScanTab({
   predictions,
   onReset,
 }) {
+  const [isSampleLoading, setIsSampleLoading] = useState(false);
+
+  const handleSampleSelect = async (sample) => {
+    setIsSampleLoading(true);
+    try {
+      const response = await fetch(sample.path);
+      const blob = await response.blob();
+      const file = new File([blob], `${sample.id}.jpg`, { type: 'image/jpeg' });
+      onImageSelect(file);
+    } catch (err) {
+      console.error('Failed to load sample image:', err);
+    } finally {
+      setIsSampleLoading(false);
+    }
+  };
+
   return (
     <div className="py-10">
       {/* Quick steps bar */}
@@ -68,6 +92,48 @@ export default function ScanTab({
                 </svg>
               )}
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Sample Images Section */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+            Try a Sample Image
+          </h3>
+          {isSampleLoading && (
+            <div className="flex items-center gap-2 text-xs text-cyan-400">
+              <div className="w-3 h-3 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+              Loading sample...
+            </div>
+          )}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {SAMPLE_IMAGES.map((sample) => (
+            <button
+              key={sample.id}
+              onClick={() => handleSampleSelect(sample)}
+              disabled={isSampleLoading || isLoading}
+              className={`
+                group relative aspect-video rounded-xl overflow-hidden border-2 transition-all duration-200
+                ${image?.name === `${sample.id}.jpg`
+                  ? 'border-cyan-500 shadow-lg shadow-cyan-500/20'
+                  : 'border-slate-800 hover:border-slate-700'
+                }
+              `}
+            >
+              <img
+                src={sample.path}
+                alt={sample.name}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent flex items-end p-2 sm:p-3">
+                <span className="text-[10px] sm:text-xs font-medium text-slate-200">
+                  {sample.name}
+                </span>
+              </div>
+            </button>
           ))}
         </div>
       </section>
