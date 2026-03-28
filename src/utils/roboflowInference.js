@@ -7,9 +7,11 @@ export async function runInference(imageBase64, confidenceThreshold = 0.35) {
   const modelUrl = import.meta.env.VITE_ROBOFLOW_MODEL_URL;
 
   if (!apiKey || !modelUrl) {
-    throw new Error(
+    const error = new Error(
       'Roboflow API credentials are not configured. Add VITE_ROBOFLOW_API_KEY and VITE_ROBOFLOW_MODEL_URL to your .env file.'
     );
+    error.name = 'ConfigurationError';
+    throw error;
   }
 
   // Roboflow API expects confidence as 0–100 integer
@@ -28,7 +30,14 @@ export async function runInference(imageBase64, confidenceThreshold = 0.35) {
     throw new Error(`Roboflow API error ${response.status}: ${errorText}`);
   }
 
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch (err) {
+    throw new Error(
+      `Failed to parse Roboflow API response as JSON. The API may have returned an image or an error page instead of predictions. Response Status: ${response.status}`
+    );
+  }
 
   // Roboflow returns predictions with CENTER x,y and width/height in pixel coordinates.
   // Normalize all coordinates to 0–1 range relative to the image dimensions.
