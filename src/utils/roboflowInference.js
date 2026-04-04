@@ -14,10 +14,15 @@ export async function runInference(imageBase64, confidenceThreshold = 0.35) {
     throw error;
   }
 
+  // Ensure modelUrl is an absolute URL
+  const absoluteModelUrl = modelUrl.startsWith('http')
+    ? modelUrl
+    : `https://detect.roboflow.com/${modelUrl}`;
+
   // Roboflow API expects confidence as 0–100 integer
   const confidenceParam = Math.round(confidenceThreshold * 100);
 
-  const url = `${modelUrl}?api_key=${apiKey}&confidence=${confidenceParam}`;
+  const url = `${absoluteModelUrl}?api_key=${apiKey}&confidence=${confidenceParam}`;
 
   const response = await fetch(url, {
     method: 'POST',
