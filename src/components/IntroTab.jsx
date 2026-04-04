@@ -198,7 +198,7 @@ export default function IntroTab({ onNavigate }) {
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-8">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
             <span className="text-xs font-medium text-cyan-300 uppercase tracking-wider">
-              GSDSEF 2026 — Earth &amp; Environmental Sciences
+              CSEF 2026 — Environmental Engineering
             </span>
           </div>
 
