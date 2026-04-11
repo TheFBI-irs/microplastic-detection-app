@@ -1,6 +1,7 @@
 import { useRef, useEffect, useCallback, useState } from 'react';
 import { drawBoundingBoxes } from '../utils/drawBoundingBoxes';
 import BenchmarkAlert, { BENCHMARKS } from './BenchmarkAlert';
+import ActionPanel from './ActionPanel';
 
 export default function ResultsPanel({ 
   imageUrl, 
@@ -262,14 +263,21 @@ Mean Confidence: ${(meanConfidence * 100).toFixed(1)}%`;
         </div>
       )}
 
-      {/* Concentration Benchmark Analysis */}
+      {/* Concentration Benchmark Analysis and Recommendations */}
       {predictions.length > 0 && (
-        <BenchmarkAlert 
-          particleCount={predictions.length} 
-          sampleVolumeML={sampleVolumeML}
-          sourceType={sourceType}
-          onSourceTypeChange={setSourceType}
-        />
+        <>
+          <BenchmarkAlert 
+            particleCount={predictions.length} 
+            sampleVolumeML={sampleVolumeML}
+            sourceType={sourceType}
+            onSourceTypeChange={setSourceType}
+          />
+          <ActionPanel 
+            particleCount={predictions.length} 
+            sampleVolumeML={sampleVolumeML}
+            sourceType={sourceType}
+          />
+        </>
       )}
     </section>
   );
