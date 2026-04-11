@@ -35,7 +35,7 @@ const SAMPLE_IMAGES = [
   { id: 'sample1', name: 'Low Concentration', path: `${base}images/demo/demo-1.jpg` },
   { id: 'sample2', name: 'High Concentration', path: `${base}images/demo/demo-9.jpg` },
   { id: 'sample3', name: 'Mixed Sizes', path: `${base}images/demo/demo-3.jpg` },
-  { id: 'sample4', name: 'Very High Density', path: `${base}images/demo/IMG_7849_jpg.rf.14ef3fb49ac8dfd9ab7955c0c7a0db76.jpg` },
+  { id: 'sample4', name: 'Very High Density', path: `${base}images/demo/demo-highdens.jpg` },
 ];
 
 export default function ScanTab({
@@ -50,6 +50,8 @@ export default function ScanTab({
   error,
   predictions,
   onReset,
+  sampleVolumeML,
+  onSampleVolumeChange,
 }) {
   const [isSampleLoading, setIsSampleLoading] = useState(false);
 
@@ -159,6 +161,9 @@ export default function ScanTab({
           predictions={predictions}
           imageName={image?.name}
           onReset={onReset}
+          sampleVolumeML={sampleVolumeML}
+          onSampleVolumeChange={onSampleVolumeChange}
+          confidence={confidence}
         />
       )}
     </div>

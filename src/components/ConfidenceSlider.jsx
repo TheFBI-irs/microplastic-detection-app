@@ -33,7 +33,7 @@ export default function ConfidenceSlider({ value, onChange }) {
       />
 
       <p className="text-xs text-slate-500 mt-2">
-        0.35 is recommended — validated as optimal confidence threshold for this model
+        <span className="font-medium text-slate-400">0.35 recommended:</span> Lower = catches more particles (more false positives). Higher = more selective.
       </p>
     </div>
   );

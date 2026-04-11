@@ -19,6 +19,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [confidence, setConfidence] = useState(0.35);
+  const [sampleVolumeML, setSampleVolumeML] = useState(10);
 
   const apiKeyMissing =
     !import.meta.env.VITE_ROBOFLOW_API_KEY ||
@@ -86,6 +87,8 @@ export default function App() {
             error={error}
             predictions={predictions}
             onReset={handleReset}
+            sampleVolumeML={sampleVolumeML}
+            onSampleVolumeChange={setSampleVolumeML}
           />
         );
       case 'science':

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const BENCHMARKS = {
+export const BENCHMARKS = {
   tap: {
     label: 'Tap Water',
     desc: 'Municipal drinking water (p/mL)',
@@ -48,9 +48,12 @@ const BENCHMARKS = {
   }
 };
 
-export default function BenchmarkAlert({ particleCount, sampleVolumeML = 10 }) {
-  const [sourceType, setSourceType] = useState('tap');
-
+export default function BenchmarkAlert({ 
+  particleCount, 
+  sampleVolumeML = 10, 
+  sourceType, 
+  onSourceTypeChange 
+}) {
   // Calculate particles per mL
   const pML = particleCount / sampleVolumeML;
 
@@ -103,7 +106,7 @@ export default function BenchmarkAlert({ particleCount, sampleVolumeML = 10 }) {
           <select
             id="sourceType"
             value={sourceType}
-            onChange={(e) => setSourceType(e.target.value)}
+            onChange={(e) => onSourceTypeChange(e.target.value)}
             className="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors cursor-pointer"
           >
             {Object.entries(BENCHMARKS).map(([key, config]) => (

@@ -1,8 +1,18 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import { drawBoundingBoxes } from '../utils/drawBoundingBoxes';
-import BenchmarkAlert from './BenchmarkAlert';
+import BenchmarkAlert, { BENCHMARKS } from './BenchmarkAlert';
 
-export default function ResultsPanel({ imageUrl, predictions, imageName, onReset }) {
+export default function ResultsPanel({ 
+  imageUrl, 
+  predictions, 
+  imageName, 
+  onReset,
+  sampleVolumeML,
+  onSampleVolumeChange,
+  confidence 
+}) {
+  const [sourceType, setSourceType] = useState('tap');
+  const [copySuccess, setCopySuccess] = useState(false);
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
 
@@ -39,29 +49,38 @@ export default function ResultsPanel({ imageUrl, predictions, imageName, onReset
 
   const handleDownloadReport = () => {
     const timestamp = new Date().toISOString();
+    const sourceLabel = BENCHMARKS[sourceType]?.label || 'Unknown';
+    const volume = sampleVolumeML || 10;
+    const pML = (predictions.length / volume).toFixed(4).replace(/\.?0+$/, '');
+    
     const lines = [
       `Low-cost AI-Powered Microplastic Detection Kit Report`,
-      `============================`,
+      `===================================================`,
       `Timestamp: ${timestamp}`,
       `Image: ${imageName || 'unknown'}`,
+      `Confidence Threshold: ${confidence.toFixed(2)}`,
+      ``,
+      `--- SAMPLE METADATA ---`,
+      `Water Source: ${sourceLabel}`,
+      `Sample Volume: ${volume} mL`,
       `Particles Detected: ${predictions.length}`,
+      `Concentration: ${pML} p/mL`,
       `Mean Confidence: ${(meanConfidence * 100).toFixed(1)}%`,
       ``,
-      `Model Performance (validated):`,
-      `  Precision: 86.8%`,
-      `  Recall:    87.0%`,
-      `  mAP@50:    89.4%`,
+      `--- MODEL PERFORMANCE (VALIDATED) ---`,
+      `Precision: 86.8%`,
+      `Recall:    87.0%`,
+      `mAP@50:    89.4%`,
       ``,
-      `Individual Detections:`,
-      `---`,
+      `--- INDIVIDUAL DETECTIONS ---`,
     ];
 
     predictions.forEach((p, i) => {
       lines.push(
-        `  #${i + 1}: confidence=${(p.confidence * 100).toFixed(1)}%, ` +
+        `#${i + 1}: confidence=${(p.confidence * 100).toFixed(1)}%, ` +
         `class=${p.class || 'microplastic'}, ` +
         `center=(${p.x.toFixed(4)}, ${p.y.toFixed(4)}), ` +
-        `size=(${p.width.toFixed(4)} × ${p.height.toFixed(4)})`
+        `size=(${p.width.toFixed(4)}x${p.height.toFixed(4)})`
       );
     });
 
@@ -72,6 +91,50 @@ export default function ResultsPanel({ imageUrl, predictions, imageName, onReset
     a.download = `detection-report-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadCSV = () => {
+    const headers = ["Detection#", "Confidence%", "Class", "CenterX", "CenterY", "Width", "Height"];
+    const rows = predictions.map((p, i) => [
+      i + 1,
+      (p.confidence * 100).toFixed(1),
+      p.class || 'microplastic',
+      p.x.toFixed(4),
+      p.y.toFixed(4),
+      p.width.toFixed(4),
+      p.height.toFixed(4)
+    ]);
+    
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `detection-data-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopyToClipboard = async () => {
+    const sourceLabel = BENCHMARKS[sourceType]?.label || 'Unknown';
+    const volume = sampleVolumeML || 10;
+    const pML = (predictions.length / volume).toFixed(4).replace(/\.?0+$/, '');
+    
+    const text = `Microplastic Detection Results
+Particle Count: ${predictions.length}
+Concentration: ${pML} p/mL 
+Volume: ${volume}mL
+Source: ${sourceLabel}
+Confidence Threshold: ${confidence.toFixed(2)}
+Mean Confidence: ${(meanConfidence * 100).toFixed(1)}%`;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy', err);
+    }
   };
 
   return (
@@ -134,6 +197,24 @@ export default function ResultsPanel({ imageUrl, predictions, imageName, onReset
               <p className="text-sm text-slate-400 mt-1">Mean Confidence</p>
             </div>
 
+            {/* Volume dropdown */}
+            <div className="border-t border-slate-700/50 pt-4">
+              <label htmlFor="volume-select" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                Sample Volume
+              </label>
+              <select
+                id="volume-select"
+                value={sampleVolumeML}
+                onChange={(e) => onSampleVolumeChange(Number(e.target.value))}
+                className="w-full bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
+              >
+                <option value={10}>10 mL</option>
+                <option value={50}>50 mL</option>
+                <option value={100}>100 mL</option>
+                <option value={500}>500 mL</option>
+              </select>
+            </div>
+
             {/* Model stats table */}
             <div className="border-t border-slate-700/50 pt-4">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
@@ -159,10 +240,21 @@ export default function ResultsPanel({ imageUrl, predictions, imageName, onReset
 
             {/* Action buttons */}
             <div className="flex flex-col gap-3 mt-auto">
-              <button onClick={handleDownloadReport} className="btn-primary text-center">
-                Download Report
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={handleDownloadReport} className="btn-primary text-center text-sm py-2">
+                  📄 Report (TXT)
+                </button>
+                <button onClick={handleDownloadCSV} className="btn-primary text-center text-sm py-2 bg-slate-700 hover:bg-slate-600 border-slate-600">
+                  📊 Data (CSV)
+                </button>
+              </div>
+              <button 
+                onClick={handleCopyToClipboard} 
+                className={`btn-secondary text-center text-sm py-2 transition-colors ${copySuccess ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : ''}`}
+              >
+                {copySuccess ? '✓ Copied to Clipboard' : '📋 Copy Summary'}
               </button>
-              <button onClick={onReset} className="btn-secondary text-center">
+              <button onClick={onReset} className="btn-secondary text-center text-sm py-2">
                 Reset / Analyze Another
               </button>
             </div>
@@ -172,7 +264,12 @@ export default function ResultsPanel({ imageUrl, predictions, imageName, onReset
 
       {/* Concentration Benchmark Analysis */}
       {predictions.length > 0 && (
-        <BenchmarkAlert particleCount={predictions.length} />
+        <BenchmarkAlert 
+          particleCount={predictions.length} 
+          sampleVolumeML={sampleVolumeML}
+          sourceType={sourceType}
+          onSourceTypeChange={setSourceType}
+        />
       )}
     </section>
   );
