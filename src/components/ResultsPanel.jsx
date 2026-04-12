@@ -2,6 +2,7 @@ import { useRef, useEffect, useCallback, useState } from 'react';
 import { drawBoundingBoxes } from '../utils/drawBoundingBoxes';
 import BenchmarkAlert, { BENCHMARKS } from './BenchmarkAlert';
 import ActionPanel from './ActionPanel';
+import { useToast } from './Toast';
 
 export default function ResultsPanel({ 
   imageUrl, 
@@ -13,7 +14,7 @@ export default function ResultsPanel({
   confidence 
 }) {
   const [sourceType, setSourceType] = useState('tap');
-  const [copySuccess, setCopySuccess] = useState(false);
+  const { addToast } = useToast();
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
 
@@ -21,6 +22,16 @@ export default function ResultsPanel({
     predictions.length > 0
       ? predictions.reduce((sum, p) => sum + p.confidence, 0) / predictions.length
       : 0;
+
+  const bucketCounts = [
+    { label: '<50%',   min: 0.0,  max: 0.50 },
+    { label: '50–70%', min: 0.50, max: 0.70 },
+    { label: '70%+',   min: 0.70, max: 1.01 },
+  ].map((b) => ({
+    ...b,
+    count: predictions.filter((p) => p.confidence >= b.min && p.confidence < b.max).length,
+  }));
+  const maxBucketCount = Math.max(...bucketCounts.map((b) => b.count), 1);
 
   const redraw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -44,9 +55,41 @@ export default function ResultsPanel({
   }, [redraw]);
 
   useEffect(() => {
-    window.addEventListener('resize', redraw);
-    return () => window.removeEventListener('resize', redraw);
+    let timeoutId;
+    const debouncedRedraw = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(redraw, 200);
+    };
+    window.addEventListener('resize', debouncedRedraw);
+    return () => {
+      window.removeEventListener('resize', debouncedRedraw);
+      clearTimeout(timeoutId);
+    };
   }, [redraw]);
+
+  const handleDownloadAnnotatedPNG = useCallback(() => {
+    const img = imgRef.current;
+    if (!img) return;
+    const naturalW = img.naturalWidth;
+    const naturalH = img.naturalHeight;
+    const offscreen = document.createElement('canvas');
+    // drawBoundingBoxes sets canvas dimensions and clears it — call first
+    drawBoundingBoxes(offscreen, predictions, naturalW, naturalH);
+    // Draw original image behind the boxes using destination-over compositing
+    const ctx = offscreen.getContext('2d');
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.drawImage(img, 0, 0, naturalW, naturalH);
+    ctx.globalCompositeOperation = 'source-over';
+    offscreen.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `annotated-${imageName || 'result'}-${Date.now()}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+      addToast('Image downloaded', 'success');
+    }, 'image/png');
+  }, [predictions, imageName, addToast]);
 
   const handleDownloadReport = () => {
     const timestamp = new Date().toISOString();
@@ -92,6 +135,7 @@ export default function ResultsPanel({
     a.download = `detection-report-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+    addToast('Report downloaded', 'success');
   };
 
   const handleDownloadCSV = () => {
@@ -114,6 +158,7 @@ export default function ResultsPanel({
     a.download = `detection-data-${Date.now()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    addToast('CSV downloaded', 'success');
   };
 
   const handleCopyToClipboard = async () => {
@@ -131,10 +176,9 @@ Mean Confidence: ${(meanConfidence * 100).toFixed(1)}%`;
 
     try {
       await navigator.clipboard.writeText(text);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
+      addToast('Copied to clipboard', 'success');
     } catch (err) {
-      console.error('Failed to copy', err);
+      addToast('Failed to copy', 'error');
     }
   };
 
@@ -198,6 +242,27 @@ Mean Confidence: ${(meanConfidence * 100).toFixed(1)}%`;
               <p className="text-sm text-slate-400 mt-1">Mean Confidence</p>
             </div>
 
+            {/* Confidence distribution mini-chart */}
+            <div className="border-t border-slate-700/50 pt-4">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                Confidence Distribution
+              </p>
+              <div className="flex flex-col gap-2">
+                {bucketCounts.map((b) => (
+                  <div key={b.label} className="flex items-center gap-2 text-xs">
+                    <span className="w-12 text-slate-400 shrink-0">{b.label}</span>
+                    <div className="flex-1 bg-slate-800 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full bg-cyan-500 rounded-full transition-all duration-500"
+                        style={{ width: `${(b.count / maxBucketCount) * 100}%` }}
+                      />
+                    </div>
+                    <span className="w-4 text-right text-slate-300 font-medium shrink-0">{b.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Volume dropdown */}
             <div className="border-t border-slate-700/50 pt-4">
               <label htmlFor="volume-select" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
@@ -241,6 +306,9 @@ Mean Confidence: ${(meanConfidence * 100).toFixed(1)}%`;
 
             {/* Action buttons */}
             <div className="flex flex-col gap-3 mt-auto">
+              <button onClick={handleDownloadAnnotatedPNG} className="btn-primary text-center text-sm py-2 w-full">
+                🖼️ Download Annotated Image
+              </button>
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={handleDownloadReport} className="btn-primary text-center text-sm py-2">
                   📄 Report (TXT)
@@ -249,11 +317,11 @@ Mean Confidence: ${(meanConfidence * 100).toFixed(1)}%`;
                   📊 Data (CSV)
                 </button>
               </div>
-              <button 
-                onClick={handleCopyToClipboard} 
-                className={`btn-secondary text-center text-sm py-2 transition-colors ${copySuccess ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : ''}`}
+              <button
+                onClick={handleCopyToClipboard}
+                className="btn-secondary text-center text-sm py-2"
               >
-                {copySuccess ? '✓ Copied to Clipboard' : '📋 Copy Summary'}
+                📋 Copy Summary
               </button>
               <button onClick={onReset} className="btn-secondary text-center text-sm py-2">
                 Reset / Analyze Another

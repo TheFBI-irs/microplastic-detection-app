@@ -6,8 +6,9 @@ import ScienceTab from './components/ScienceTab';
 import ModelTab from './components/ModelTab';
 import AboutTab from './components/AboutTab';
 import Footer from './components/Footer';
-import { fileToBase64 } from './utils/imageUtils';
+import { compressAndEncodeBase64 } from './utils/imageUtils';
 import { runInference } from './utils/roboflowInference';
+import { ToastProvider } from './components/Toast';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('intro');
@@ -51,7 +52,7 @@ export default function App() {
     setError(null);
     setPredictions(null);
     try {
-      const base64 = await fileToBase64(image);
+      const base64 = await compressAndEncodeBase64(image);
       const preds = await runInference(base64, confidence);
       setPredictions(preds);
     } catch (err) {
@@ -104,6 +105,7 @@ export default function App() {
   };
 
   return (
+    <ToastProvider>
     <div className="min-h-screen flex flex-col">
       <Header activeTab={activeTab} onTabChange={handleTabChange} />
 
@@ -133,5 +135,6 @@ export default function App() {
 
       <Footer />
     </div>
+    </ToastProvider>
   );
 }
