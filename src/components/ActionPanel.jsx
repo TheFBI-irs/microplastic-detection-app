@@ -58,6 +58,20 @@ const DatabaseIcon = () => (
   </svg>
 );
 
+const FlameIcon = () => (
+  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.5 3.5 6.5 1.5 2 1 4.5-1 6.126" />
+    <path d="M12 22c4.418 0 8-3.582 8-8 0-4.418-4.418-9-8-14-3.582 5-8 9.582-8 14 0 4.418 3.582 8 8 8z" />
+  </svg>
+);
+
+const SearchIcon = () => (
+  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+);
+
 export default function ActionPanel({ particleCount, sampleVolumeML = 10, sourceType }) {
   // Compute pML and determine severity
   const pML = particleCount / sampleVolumeML;
@@ -86,7 +100,7 @@ export default function ActionPanel({ particleCount, sampleVolumeML = 10, source
       id: 'tap-microwave',
       title: 'Stop Microwaving Plastics',
       desc: 'Heat significantly accelerates plastic degradation. Use glass or ceramic containers to heat food instead.',
-      icon: <DatabaseIcon /> // Placeholder
+      icon: <FlameIcon />
     });
     immediateActions.push({
       id: 'tap-bottle',
@@ -125,24 +139,47 @@ export default function ActionPanel({ particleCount, sampleVolumeML = 10, source
     }
   } else {
     // Environmental: ocean, river, lake
-    immediateActions.push({
-      id: 'env-cleanup',
-      title: 'Join a Local Cleanup',
-      desc: 'Participate in beach or river cleanups to stop macro-plastics before they degrade. Use the Ocean Conservancy trash tracker.',
-      icon: <TrashIcon />
-    });
-    immediateActions.push({
-      id: 'env-wash',
-      title: 'Capture Laundry Fibers',
-      desc: 'Synthetic clothing releases microfibers when washed. Use a Guppyfriend washing bag or install a washing machine filter.',
-      icon: <FilterIcon />
-    });
-    immediateActions.push({
-      id: 'env-report',
-      title: 'Report Your Data',
-      desc: 'Share your findings with local environmental agencies or water management boards to advocate for better local policies.',
-      icon: <ReportIcon />
-    });
+    // Environmental: ocean, river, lake
+    if (severityLevel.color === 'emerald') {
+      immediateActions.push({
+        id: 'env-cleanup',
+        title: 'Join a Local Cleanup',
+        desc: 'Participate in beach or river cleanups to stop macro-plastics before they degrade. Use the Ocean Conservancy trash tracker.',
+        icon: <TrashIcon />
+      });
+      immediateActions.push({
+        id: 'env-wash',
+        title: 'Capture Laundry Fibers',
+        desc: 'Synthetic clothing releases microfibers when washed. Use a Guppyfriend washing bag or install a washing machine filter.',
+        icon: <FilterIcon />
+      });
+      immediateActions.push({
+        id: 'env-report',
+        title: 'Report Your Data',
+        desc: 'Share your findings with local environmental agencies or water management boards to advocate for better local policies.',
+        icon: <ReportIcon />
+      });
+    } else {
+      // Amber or Red - Hotspot / Concerning levels
+      immediateActions.push({
+        id: 'env-investigate',
+        title: 'Investigate Local Outfalls',
+        desc: 'High concentrations suggest a nearby source. Check for storm drains, industrial runoff, or illegal dumping points in the vicinity.',
+        icon: <SearchIcon />
+      });
+      immediateActions.push({
+        id: 'env-alert',
+        title: 'Alert Local Authorities',
+        desc: 'Report this hotspot to local environmental boards. High readings can trigger official investigations and water quality remediation.',
+        icon: <MegaphoneIcon />
+      });
+      immediateActions.push({
+        id: 'env-infrastructure',
+        title: 'Advocate for Infrastructure',
+        desc: 'Push for advanced filtration at local wastewater treatment plants, which serve as the primary gatekeepers for our waterways.',
+        icon: <UtilitiesIcon />
+      });
+    }
   }
 
   return (

@@ -67,6 +67,7 @@ export default function App() {
     setImageUrl(null);
     setPredictions(null);
     setError(null);
+    setSampleVolumeML(10);
   }, [imageUrl]);
 
   const renderTab = () => {
